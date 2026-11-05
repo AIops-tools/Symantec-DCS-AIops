@@ -50,3 +50,16 @@ def test_bad_page_and_no_post_mutation():
         ops.alerts(conn, "rid")
     with pytest.raises(ValueError, match="read operations"):
         conn.query("/sis-ui/api/v2/policies", {"name": "bad"})
+
+
+def test_unpaged_error_response_is_capped_and_flagged():
+    def handler(request):
+        if request.url.path.endswith("/auth/token"):
+            return httpx.Response(200, json={"access_token": "t", "expires_in": 1800})
+        return httpx.Response(200, json=[{"eventId": 1}, {"eventId": 2}])
+
+    conn = DcsConnection(
+        httpx.Client(base_url="https://dcs.example:4443", transport=httpx.MockTransport(handler))
+    )
+    result = ops.asset_errors(conn, 7, limit=1)
+    assert result["returned"] == 1 and result["truncated"] is True

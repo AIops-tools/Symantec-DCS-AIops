@@ -25,9 +25,9 @@ def dcs_assets(sort: str, offset: int = 0, limit: int = 100, filter_text: str = 
 @mcp.tool()
 @governed_tool(risk_level="low")
 @tool_errors()
-def dcs_asset_errors(asset_id: int) -> dict:
+def dcs_asset_errors(asset_id: int, limit: int = 100) -> dict:
     """[READ] Read recent asset error events."""
-    return ops.asset_errors(get_connection(), asset_id)
+    return ops.asset_errors(get_connection(), asset_id, limit)
 
 
 @mcp.tool()
@@ -97,6 +97,6 @@ def dcs_policy(policy_id: int) -> dict:
 @mcp.tool()
 @governed_tool(risk_level="low")
 @tool_errors()
-def dcs_policy_violations(policy_id: int) -> dict:
+def dcs_policy_violations(policy_id: int, limit: int = 100) -> dict:
     """[READ] Read policy violations."""
-    return ops.policy_violations(get_connection(), policy_id)
+    return ops.policy_violations(get_connection(), policy_id, limit)

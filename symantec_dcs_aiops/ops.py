@@ -18,11 +18,19 @@ def _object(conn: DcsConnection, path: str) -> dict:
     return {"data": data}
 
 
-def _list(conn: DcsConnection, path: str, params: dict | None = None) -> dict:
-    data = conn.get(path, params=params)
+def _list(conn: DcsConnection, path: str, limit: int = 100) -> dict:
+    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
+        raise ValueError("limit must be 1–100")
+    data = conn.get(path)
     if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
         raise DcsError(f"DCS returned an unexpected list for {path}")
-    return {"items": data, "returned": len(data), "paginationKnown": False}
+    return {
+        "items": data[:limit],
+        "returned": min(len(data), limit),
+        "limit": limit,
+        "truncated": len(data) > limit,
+        "paginationKnown": False,
+    }
 
 
 def _page(
@@ -70,8 +78,8 @@ def assets(
     return _page(conn, "/sis-ui/api/v2/assets", sort, offset, limit, filter_text)
 
 
-def asset_errors(conn: DcsConnection, asset_id: int) -> dict:
-    return _list(conn, f"/sis-ui/api/v2/assets/{_id(asset_id)}/errors")
+def asset_errors(conn: DcsConnection, asset_id: int, limit: int = 100) -> dict:
+    return _list(conn, f"/sis-ui/api/v2/assets/{_id(asset_id)}/errors", limit)
 
 
 def asset_stats(conn: DcsConnection) -> dict:
@@ -130,5 +138,5 @@ def policy(conn: DcsConnection, policy_id: int) -> dict:
     return _object(conn, f"/sis-ui/api/v2/policies/{_id(policy_id)}")
 
 
-def policy_violations(conn: DcsConnection, policy_id: int) -> dict:
-    return _list(conn, f"/sis-ui/api/v2/policies/{_id(policy_id)}/violations")
+def policy_violations(conn: DcsConnection, policy_id: int, limit: int = 100) -> dict:
+    return _list(conn, f"/sis-ui/api/v2/policies/{_id(policy_id)}/violations", limit)

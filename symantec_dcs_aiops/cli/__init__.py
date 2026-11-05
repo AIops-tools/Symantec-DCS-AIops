@@ -37,8 +37,8 @@ def assets(sort: str, offset: int = 0, limit: int = 100, filter_text: str = "") 
 
 
 @app.command("asset-errors")
-def asset_errors(asset_id: int) -> None:
-    _emit(dcs.dcs_asset_errors(asset_id))
+def asset_errors(asset_id: int, limit: int = 100) -> None:
+    _emit(dcs.dcs_asset_errors(asset_id, limit))
 
 
 @app.command("asset-stats")
@@ -82,8 +82,8 @@ def policy(policy_id: int) -> None:
 
 
 @app.command("policy-violations")
-def policy_violations(policy_id: int) -> None:
-    _emit(dcs.dcs_policy_violations(policy_id))
+def policy_violations(policy_id: int, limit: int = 100) -> None:
+    _emit(dcs.dcs_policy_violations(policy_id, limit))
 
 
 def main() -> None:
