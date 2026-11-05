@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "symantec-dcs-aiops",
+  "displayName": "Symantec Data Center Security AIops",
+  "version": "0.1.0",
+  "description": "Governed Symantec DCS — 12 MCP tools, read-only with audit.",
+  "author": {
+    "name": "Wei Zhou",
+    "email": "zhouwei008@gmail.com",
+    "url": "https://github.com/AIops-tools"
+  },
+  "homepage": "https://github.com/AIops-tools/Symantec-DCS-AIops",
+  "repository": "https://github.com/AIops-tools/Symantec-DCS-AIops",
+  "license": "MIT",
+  "keywords": [
+    "symantec",
+    "dcs",
+    "data-center-security",
+    "mcp",
+    "aiops"
+  ]
+}

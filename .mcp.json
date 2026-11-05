@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "symantec-dcs-aiops": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "symantec-dcs-aiops==0.1.0",
+        "symantec-dcs-aiops-mcp"
+      ]
+    }
+  }
+}

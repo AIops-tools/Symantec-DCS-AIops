@@ -1,0 +1,24 @@
+{
+  "id": "symantec-dcs-aiops",
+  "name": "Symantec Data Center Security AIops",
+  "description": "Governed Symantec DCS — 12 MCP tools, read-only with audit.",
+  "skills": [
+    "./skills"
+  ],
+  "mcpServers": {
+    "symantec-dcs-aiops": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "symantec-dcs-aiops==0.1.0",
+        "symantec-dcs-aiops-mcp"
+      ]
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
