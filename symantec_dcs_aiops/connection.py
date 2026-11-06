@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import threading
 import time
@@ -54,11 +55,24 @@ class DcsConnection:
     def close(self) -> None:
         self._client.close()
 
+    def _bounded_request(self, method: str, path: str, **kwargs: Any) -> tuple[int, bytearray]:
+        with self._client.stream(method, path, **kwargs) as response:
+            status = response.status_code
+            if status >= 400:
+                return status, bytearray()
+            body = bytearray()
+            for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                if len(body) + len(chunk) > _MAX_RESPONSE_BYTES:
+                    raise DcsError("DCS response exceeds 16 MiB; narrow the query")
+                body.extend(chunk)
+            return status, body
+
     def _authenticate(self) -> None:
         if time.monotonic() < self._auth_retry_at:
             raise DcsError("DCS login was rejected recently; wait before retrying credentials")
         try:
-            response = self._client.post(
+            status, body = self._bounded_request(
+                "POST",
                 "/sis-ui/api/v2/auth/token",
                 json={
                     "username": self._credentials[0],
@@ -72,13 +86,13 @@ class DcsConnection:
             raise DcsError("DCS login timed out; check URL and timeout") from exc
         except httpx.HTTPError as exc:
             raise DcsError("Cannot reach DCS login; check URL and TLS") from exc
-        if response.status_code in (400, 401, 403):
+        if status in (400, 401, 403):
             self._auth_retry_at = time.monotonic() + 30
             raise DcsError("DCS rejected credentials or client privileges")
-        if response.status_code >= 400:
-            raise DcsError(f"DCS login returned HTTP {response.status_code}")
+        if status >= 400:
+            raise DcsError(f"DCS login returned HTTP {status}")
         try:
-            data = response.json()
+            data = json.loads(body)
         except ValueError as exc:
             raise DcsError("DCS login returned non-JSON data") from exc
         if not isinstance(data, dict):
@@ -120,7 +134,7 @@ class DcsConnection:
                 self._authenticate()
             for attempt in range(2):
                 try:
-                    response = self._client.request(
+                    status, body = self._bounded_request(
                         method,
                         path,
                         params=params,
@@ -134,26 +148,24 @@ class DcsConnection:
                     raise DcsError(f"DCS timed out on {path}") from exc
                 except httpx.HTTPError as exc:
                     raise DcsError(f"Cannot reach DCS on {path}; check URL and TLS") from exc
-                if response.status_code == 401 and attempt == 0:
+                if status == 401 and attempt == 0:
                     self._token = None
                     self._authenticate()
                     continue
-                if response.status_code >= 400:
+                if status >= 400:
                     hint = "Check client privilege and resource ID."
-                    if response.status_code == 429:
+                    if status == 429:
                         hint = "API quota exceeded; retry after the server limit resets."
-                    elif response.status_code >= 500:
+                    elif status >= 500:
                         hint = "Check service health before retrying."
                     raise DcsError(
-                        f"DCS returned HTTP {response.status_code} for {path}. {hint}",
-                        status_code=response.status_code,
+                        f"DCS returned HTTP {status} for {path}. {hint}",
+                        status_code=status,
                     )
-                if len(response.content) > _MAX_RESPONSE_BYTES:
-                    raise DcsError("DCS response exceeds 16 MiB; narrow the query")
-                if not response.content:
+                if not body:
                     raise DcsError(f"DCS returned an empty response for {path}")
                 try:
-                    return response.json()
+                    return json.loads(body)
                 except ValueError as exc:
                     raise DcsError(f"DCS returned non-JSON data for {path}") from exc
             raise DcsError("DCS authentication retry failed")
