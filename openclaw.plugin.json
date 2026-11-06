@@ -1,7 +1,7 @@
 {
   "id": "symantec-dcs-aiops",
   "name": "Symantec Data Center Security AIops",
-  "description": "Governed Symantec DCS — 12 MCP tools, read-only with audit.",
+  "description": "Governed Symantec DCS operations — 35 MCP tools, read-only with audit.",
   "skills": [
     "./skills"
   ],

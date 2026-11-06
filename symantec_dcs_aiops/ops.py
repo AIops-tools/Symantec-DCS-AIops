@@ -11,8 +11,8 @@ def _id(value: int) -> int:
     return value
 
 
-def _object(conn: DcsConnection, path: str) -> dict:
-    data = conn.get(path)
+def _object(conn: DcsConnection, path: str, params: dict | None = None) -> dict:
+    data = conn.get(path, params=params)
     if not isinstance(data, dict) or not data:
         raise DcsError(f"DCS returned an unexpected object for {path}")
     return {"data": data}
@@ -111,11 +111,8 @@ def events(
 def event_stats(conn: DcsConnection, filter_text: str = "") -> dict:
     if len(filter_text) > 200:
         raise ValueError("filter_text must be at most 200 characters")
-    return (
-        _object(conn, "/sis-ui/api/v1/events/statistics")
-        if not filter_text
-        else {"data": conn.get("/sis-ui/api/v1/events/statistics", params={"filter": filter_text})}
-    )
+    params = {"filter": filter_text} if filter_text else None
+    return _object(conn, "/sis-ui/api/v1/events/statistics", params)
 
 
 def policies(conn: DcsConnection, filter_text: str = "", limit: int = 100) -> dict:
@@ -140,3 +137,118 @@ def policy(conn: DcsConnection, policy_id: int) -> dict:
 
 def policy_violations(conn: DcsConnection, policy_id: int, limit: int = 100) -> dict:
     return _list(conn, f"/sis-ui/api/v2/policies/{_id(policy_id)}/violations", limit)
+
+
+def asset(conn: DcsConnection, asset_id: int) -> dict:
+    """Read one managed asset."""
+    return _object(conn, f"/sis-ui/api/v1/sa/assets/{_id(asset_id)}")
+
+
+def asset_tags(conn: DcsConnection, asset_id: int, limit: int = 100) -> dict:
+    """Read asset tags."""
+    return _list(conn, f"/sis-ui/api/v2/assets/{_id(asset_id)}/tags", limit)
+
+
+def asset_policies(conn: DcsConnection, asset_id: int, limit: int = 100) -> dict:
+    """List policies assigned to an asset."""
+    return _list(conn, f"/sis-ui/api/v1/sa/assets/{_id(asset_id)}/policies", limit)
+
+
+def asset_history(conn: DcsConnection, asset_id: int, limit: int = 100) -> dict:
+    """Read asset change history."""
+    return _list(conn, f"/sis-ui/api/v1/sa/assets/{_id(asset_id)}/history", limit)
+
+
+def licenses(conn: DcsConnection, limit: int = 100) -> dict:
+    """List license inventory."""
+    return _list(conn, "/sis-ui/api/v2/licenses", limit)
+
+
+def reports(conn: DcsConnection, limit: int = 100) -> dict:
+    """List report definitions."""
+    return _list(conn, "/sis-ui/api/v1/reports/list", limit)
+
+
+def report_stats(conn: DcsConnection) -> dict:
+    """Read report counts."""
+    return _object(conn, "/sis-ui/api/v1/reports/statistics")
+
+
+def report_jobs(conn: DcsConnection, limit: int = 100) -> dict:
+    """List report job states."""
+    return _list(conn, "/sis-ui/api/v2/reports/jobs", limit)
+
+
+def report_job(conn: DcsConnection, job_id: int) -> dict:
+    """Read one report job state."""
+    return _object(conn, f"/sis-ui/api/v2/reports/jobs/{_id(job_id)}")
+
+
+def roles(conn: DcsConnection, limit: int = 100) -> dict:
+    """List RBAC roles."""
+    return _list(conn, "/sis-ui/api/v2/roles", limit)
+
+
+def role(conn: DcsConnection, role_id: int) -> dict:
+    """Read one RBAC role."""
+    return _object(conn, f"/sis-ui/api/v2/roles/{_id(role_id)}")
+
+
+def role_users(conn: DcsConnection, role_id: int, limit: int = 100) -> dict:
+    """List users assigned to a role."""
+    return _list(conn, f"/sis-ui/api/v2/roles/{_id(role_id)}/users", limit)
+
+
+def security_groups(conn: DcsConnection, limit: int = 100) -> dict:
+    """List security groups."""
+    return _list(conn, "/sis-ui/api/v2/securitygroups", limit)
+
+
+def security_group(conn: DcsConnection, group_id: int) -> dict:
+    """Read one security group."""
+    return _object(conn, f"/sis-ui/api/v1/sa/securitygroups/{_id(group_id)}")
+
+
+def security_group_stats(conn: DcsConnection) -> dict:
+    """Read security group counts."""
+    return _object(conn, "/sis-ui/api/v1/sa/securitygroups/statistics")
+
+
+def tags(conn: DcsConnection, limit: int = 100) -> dict:
+    """List policy and asset tags."""
+    return _list(conn, "/sis-ui/api/v2/tags", limit)
+
+
+def syslogs(conn: DcsConnection, limit: int = 100) -> dict:
+    """List syslog destinations."""
+    return _list(conn, "/sis-ui/api/v2/settings/syslogs", limit)
+
+
+def server_registry(conn: DcsConnection, limit: int = 100) -> dict:
+    """List registered servers."""
+    return _list(conn, "/sis-ui/api/v2/server/registry", limit)
+
+
+def policy_settings(conn: DcsConnection, policy_id: int) -> dict:
+    """Read policy settings."""
+    return _object(conn, f"/sis-ui/api/v2/policies/{_id(policy_id)}/settings")
+
+
+def policy_library(conn: DcsConnection, limit: int = 100) -> dict:
+    """List library policies."""
+    return _list(conn, "/sis-ui/api/v2/policies/library", limit)
+
+
+def alert_details(conn: DcsConnection, alert_id: int) -> dict:
+    """Read alert rule details."""
+    return _object(conn, f"/sis-ui/api/v1/alerts/{_id(alert_id)}/details")
+
+
+def alert_notifications(conn: DcsConnection, limit: int = 100) -> dict:
+    """List recent alert notifications."""
+    return _list(conn, "/sis-ui/api/v1/alerts/notifications", limit)
+
+
+def users(conn: DcsConnection, limit: int = 100) -> dict:
+    """List management users."""
+    return _list(conn, "/sis-ui/api/v2/users", limit)

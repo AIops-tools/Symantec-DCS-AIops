@@ -39,7 +39,7 @@ mcp = MCPServer(
     "symantec-dcs-aiops",
     version=__version__,
     instructions=(
-        "Audited DCS tenant, application, connector and policy read tools. "
+        "Audited DCS service, asset, event, policy, report and role read tools. "
         "No state-changing tools in this preview."
     ),
 )

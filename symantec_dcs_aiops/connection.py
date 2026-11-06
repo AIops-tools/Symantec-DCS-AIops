@@ -10,6 +10,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+_MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+
 
 class DcsError(RuntimeError):
     def __init__(self, message: str, *, status_code: int | None = None) -> None:
@@ -146,6 +148,8 @@ class DcsConnection:
                         f"DCS returned HTTP {response.status_code} for {path}. {hint}",
                         status_code=response.status_code,
                     )
+                if len(response.content) > _MAX_RESPONSE_BYTES:
+                    raise DcsError("DCS response exceeds 16 MiB; narrow the query")
                 if not response.content:
                     raise DcsError(f"DCS returned an empty response for {path}")
                 try:

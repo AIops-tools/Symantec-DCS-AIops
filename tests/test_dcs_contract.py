@@ -63,3 +63,36 @@ def test_unpaged_error_response_is_capped_and_flagged():
     )
     result = ops.asset_errors(conn, 7, limit=1)
     assert result["returned"] == 1 and result["truncated"] is True
+
+
+def test_asset_and_report_job_read_paths():
+    seen = []
+
+    def handler(request):
+        if request.url.path.endswith("/auth/token"):
+            return httpx.Response(200, json={"access_token": "t", "expires_in": 1800})
+        seen.append(request.url.path)
+        return httpx.Response(200, json={"rid": 7})
+
+    conn = DcsConnection(
+        httpx.Client(base_url="https://dcs.example:4443", transport=httpx.MockTransport(handler))
+    )
+    assert ops.asset(conn, 7)["data"]["rid"] == 7
+    assert ops.report_job(conn, 9)["data"]["rid"] == 7
+    assert seen == ["/sis-ui/api/v1/sa/assets/7", "/sis-ui/api/v2/reports/jobs/9"]
+    with pytest.raises(ValueError, match="positive"):
+        ops.asset(conn, -1)
+
+
+def test_filtered_event_stats_validate_response_shape():
+    def handler(request):
+        if request.url.path.endswith("/auth/token"):
+            return httpx.Response(200, json={"access_token": "t", "expires_in": 1800})
+        assert request.url.params["filter"] == "severity:=:critical"
+        return httpx.Response(200, json=[])
+
+    conn = DcsConnection(
+        httpx.Client(base_url="https://dcs.example:4443", transport=httpx.MockTransport(handler))
+    )
+    with pytest.raises(DcsError, match="unexpected object"):
+        ops.event_stats(conn, "severity:=:critical")

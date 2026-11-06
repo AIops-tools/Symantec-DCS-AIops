@@ -1,7 +1,7 @@
 {
   "name": "@zw008/symantec-dcs-aiops",
   "version": "0.1.0",
-  "description": "Governed Symantec DCS — 12 MCP tools, read-only with audit.",
+  "description": "Governed Symantec DCS operations — 35 MCP tools, read-only with audit.",
   "private": true,
   "license": "MIT",
   "homepage": "https://github.com/AIops-tools/Symantec-DCS-AIops",
