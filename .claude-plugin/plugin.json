@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "symantec-dcs-aiops",
   "displayName": "Symantec Data Center Security AIops",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Governed Symantec DCS operations — 35 MCP tools, read-only with audit.",
   "author": {
     "name": "Wei Zhou",
